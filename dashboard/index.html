@@ -1005,10 +1005,7 @@
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 6H11M5 9H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       Data Sources
     </div>
-    <div class="nav-item" data-tab="methodology" onclick="showTab('methodology')">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2L9.5 6H14L10.5 8.5L12 12.5L8 10L4 12.5L5.5 8.5L2 6H6.5L8 2Z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>
-      Methodology
-    </div>
+
   </div>
 
   <div class="sidebar-footer">
@@ -1031,12 +1028,12 @@
     </div>
   </div>
 
-  <!-- ─── OVERVIEW TAB ─── -->
+  <!-- ─── OVERVIEW TAB (merged with Methodology) ─── -->
   <div id="tab-overview" class="tab-content active">
     <div class="tab-inner">
       <div class="section-header">
-        <h2>Signal Disruption Priority Overview</h2>
-        <p>1,572 FDOT traffic signals ranked by combined AADT traffic volume and hurricane proximity exposure</p>
+        <h2>Signal Disruption Priority — 1,572 Miami-Dade FDOT Signals</h2>
+        <p>Formula-based prioritization using two public datasets: FDOT AADT (2025) and NOAA HURDAT2 hurricane tracks (1851–2023). No machine learning. No synthetic data. Every score is traceable to its source.</p>
       </div>
 
       <!-- KPI Cards -->
@@ -1067,17 +1064,6 @@
         </div>
       </div>
 
-      <!-- County Context Banner -->
-      <div class="context-banner">
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style="flex-shrink:0"><circle cx="9" cy="9" r="8" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/><path d="M9 5V9L11.5 11.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <span><strong>Miami-Dade County Context:</strong></span>
-        <span class="context-tag">87 NOAA storm events (2014–2022)</span>
-        <span class="context-sep">·</span>
-        <span class="context-tag">10 FEMA disaster declarations (2016–2022)</span>
-        <span class="context-sep">·</span>
-        <span>Utility (FPL) SAIDI: <em>Not reported in EIA 861</em></span>
-      </div>
-
       <!-- Tier Bar -->
       <div class="tier-bar-card">
         <h3>Priority Tier Distribution — 1,572 Signals</h3>
@@ -1087,9 +1073,173 @@
           <div class="tier-seg low" style="flex:392">LOW · 392</div>
         </div>
         <div class="tier-legend">
-          <div class="tier-legend-item"><div class="legend-dot" style="background:var(--red)"></div>HIGH: 393 (25%)</div>
-          <div class="tier-legend-item"><div class="legend-dot" style="background:var(--orange)"></div>MODERATE: 787 (50%)</div>
-          <div class="tier-legend-item"><div class="legend-dot" style="background:var(--green)"></div>LOW: 392 (25%)</div>
+          <div class="tier-legend-item"><div class="legend-dot" style="background:var(--red)"></div>HIGH: 393 (25%) · Score ≥ 75th percentile</div>
+          <div class="tier-legend-item"><div class="legend-dot" style="background:var(--orange)"></div>MODERATE: 787 (50%) · 25th–75th percentile</div>
+          <div class="tier-legend-item"><div class="legend-dot" style="background:var(--green)"></div>LOW: 392 (25%) · Score ≤ 25th percentile</div>
+        </div>
+      </div>
+
+      <!-- Analysis Pipeline -->
+      <div style="margin-bottom:10px;font-size:13px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:0.5px">Analysis Pipeline</div>
+      <div class="pipeline-flow">
+        <div class="pipeline-step">
+          <div class="pipeline-num">1</div>
+          <div class="pipeline-label">FDOT Signals<br/><span>1,572 locations</span></div>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step">
+          <div class="pipeline-num">2</div>
+          <div class="pipeline-label">AADT Join<br/><span>100% match rate</span></div>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step">
+          <div class="pipeline-num">3</div>
+          <div class="pipeline-label">HURDAT2 Distance<br/><span>54,749 track points</span></div>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step">
+          <div class="pipeline-num">4</div>
+          <div class="pipeline-label">Normalize &amp; Score<br/><span>Priority Score [0, 1]</span></div>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step active">
+          <div class="pipeline-num">5</div>
+          <div class="pipeline-label">Tier Assignment<br/><span>HIGH / MOD / LOW</span></div>
+        </div>
+      </div>
+
+      <!-- STEP 1 -->
+      <div class="calc-section">
+        <div class="calc-header">
+          <div class="calc-step-num">Step 1</div>
+          <div>
+            <div class="calc-title">AADT Score — Traffic Volume Normalization</div>
+            <div class="calc-subtitle">Source: FDOT ArcGIS REST API · Annual Average Daily Traffic 2025 · 1,848 road segments joined to 1,572 signals</div>
+          </div>
+        </div>
+        <div class="calc-formula-box">
+          <div class="cfb-label">Formula</div>
+          <div class="cfb-formula">AADT_score = (signal_AADT − min_AADT) / (max_AADT − min_AADT)</div>
+          <div class="cfb-note">Dataset range: min_AADT = 1,500 veh/day · max_AADT = 271,000 veh/day · denominator = 269,500 · Min-max scaling maps all 1,572 signals to [0, 1] so both components contribute equally to the final weighted sum.</div>
+        </div>
+        <div class="example-grid">
+          <div class="example-card example-a">
+            <div class="ex-header"><div class="ex-badge">Example A</div><div class="ex-title">Signal #3833 — Coastal / Hurricane-Close</div></div>
+            <div class="ex-given">Given: AADT = 39,500 veh/day</div>
+            <div class="math-block">
+              <div class="math-line">AADT_score = (39,500 − 1,500) / (271,000 − 1,500)</div>
+              <div class="math-line">AADT_score = 38,000 / 269,500</div>
+              <div class="math-result">AADT_score = <strong>0.141</strong></div>
+            </div>
+            <div class="ex-interp">Moderate traffic (39,500 veh/day) → lower 14% of dataset by volume. Its high final priority comes from hurricane proximity (Step 2).</div>
+          </div>
+          <div class="example-card example-b">
+            <div class="ex-header"><div class="ex-badge">Example B</div><div class="ex-title">Signal #4110 — High-Volume Arterial</div></div>
+            <div class="ex-given">Given: AADT = 271,000 veh/day</div>
+            <div class="math-block">
+              <div class="math-line">AADT_score = (271,000 − 1,500) / (271,000 − 1,500)</div>
+              <div class="math-line">AADT_score = 269,500 / 269,500</div>
+              <div class="math-result">AADT_score = <strong>1.000</strong></div>
+            </div>
+            <div class="ex-interp">Maximum AADT in dataset — 271,000 veh/day. AADT_score = 1.000; highest-volume signal in Miami-Dade County.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="calc-section">
+        <div class="calc-header">
+          <div class="calc-step-num">Step 2</div>
+          <div>
+            <div class="calc-title">Hurricane Proximity Score — Storm Exposure Normalization</div>
+            <div class="calc-subtitle">Source: NOAA HURDAT2 Atlantic Hurricane Database 1851–2023 · 54,749 track points from 1,973 named storms · Haversine distance for all signal–track combinations</div>
+          </div>
+        </div>
+        <div class="calc-formula-box">
+          <div class="cfb-label">Formula (two sub-steps)</div>
+          <div class="cfb-formula">raw_exposure = 1 / closest_storm_km &nbsp;&nbsp;&nbsp;<span class="cfb-comment">← invert: closer storm = higher exposure value</span></div>
+          <div class="cfb-formula">hurr_score = (raw_exposure − min_exposure) / (max_exposure − min_exposure)</div>
+          <div class="cfb-note">Dataset range: closest_storm_km spans 0.15 km (most exposed) → 12.24 km (least exposed) · max_exposure = 1/0.15 = 6.667 · min_exposure = 1/12.24 = 0.0817 · denominator = 6.585 · Storm count was not used because within Miami-Dade every signal has 198–211 storms within 250 km — no spatial variation. Closest track distance gives real differentiation.</div>
+        </div>
+        <div class="example-grid">
+          <div class="example-card example-a">
+            <div class="ex-header"><div class="ex-badge">Example A</div><div class="ex-title">Signal #3833 — Coastal (25.899°N, 80.300°W)</div></div>
+            <div class="ex-given">Given: closest_storm_km = 0.15 km</div>
+            <div class="math-block">
+              <div class="math-line">raw_exposure = 1 / 0.15 = 6.667</div>
+              <div class="math-line">hurr_score = (6.667 − 0.0817) / (6.667 − 0.0817)</div>
+              <div class="math-line">hurr_score = 6.585 / 6.585</div>
+              <div class="math-result">hurr_score = <strong>1.000</strong></div>
+            </div>
+            <div class="ex-interp">A hurricane center passed within 150 m of this signal across 172 years of HURDAT2 records — maximum hurricane score in the entire dataset.</div>
+          </div>
+          <div class="example-card example-b">
+            <div class="ex-header"><div class="ex-badge">Example B</div><div class="ex-title">Signal #4110 — Inland (25.931°N, 80.209°W)</div></div>
+            <div class="ex-given">Given: closest_storm_km = 9.73 km</div>
+            <div class="math-block">
+              <div class="math-line">raw_exposure = 1 / 9.73 = 0.1028</div>
+              <div class="math-line">hurr_score = (0.1028 − 0.0817) / (6.667 − 0.0817)</div>
+              <div class="math-line">hurr_score = 0.0211 / 6.585</div>
+              <div class="math-result">hurr_score = <strong>0.003</strong></div>
+            </div>
+            <div class="ex-interp">Closest storm center in all 1,973 HURDAT2 storms was 9.73 km away. Near-zero hurricane score — final priority driven entirely by AADT.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="calc-section">
+        <div class="calc-header">
+          <div class="calc-step-num">Step 3</div>
+          <div>
+            <div class="calc-title">Final Priority Score — Equal-Weighted Combination</div>
+            <div class="calc-subtitle">Combines both normalized components with equal 50/50 weight · Output range: [0, 1]</div>
+          </div>
+        </div>
+        <div class="calc-formula-box">
+          <div class="cfb-label">Final Formula</div>
+          <div class="cfb-formula">Priority_Score = 0.5 × AADT_score + 0.5 × hurr_score</div>
+          <div class="cfb-note">Equal 50/50 weighting: no historical signal outage records exist to empirically calibrate the weights — 0.5/0.5 is the most defensible, transparent choice under data constraints.</div>
+        </div>
+        <div class="example-grid">
+          <div class="example-card example-a">
+            <div class="ex-header"><div class="ex-badge">Example A</div><div class="ex-title">Signal #3833 — Final Score</div></div>
+            <div class="ex-given">AADT_score = 0.141 &nbsp;·&nbsp; hurr_score = 1.000</div>
+            <div class="math-block">
+              <div class="math-line">Priority = 0.5 × 0.141 + 0.5 × 1.000</div>
+              <div class="math-line">Priority = 0.0705 + 0.5000</div>
+              <div class="math-result">Priority Score = <strong>0.5705</strong> &nbsp;→&nbsp; <span style="color:#ef4444;font-weight:700">HIGH</span> (Rank #1 of 1,572)</div>
+            </div>
+            <div class="ex-interp">Despite moderate traffic (14% of AADT range), Signal #3833 ranks #1 of 1,572 — storm exposure completely dominates. A hurricane center passed within 150 m.</div>
+          </div>
+          <div class="example-card example-b">
+            <div class="ex-header"><div class="ex-badge">Example B</div><div class="ex-title">Signal #4110 — Final Score</div></div>
+            <div class="ex-given">AADT_score = 1.000 &nbsp;·&nbsp; hurr_score = 0.003</div>
+            <div class="math-block">
+              <div class="math-line">Priority = 0.5 × 1.000 + 0.5 × 0.003</div>
+              <div class="math-line">Priority = 0.5000 + 0.0015</div>
+              <div class="math-result">Priority Score = <strong>0.5016</strong> &nbsp;→&nbsp; <span style="color:#ef4444;font-weight:700">HIGH</span> (Rank #2 of 1,572)</div>
+            </div>
+            <div class="ex-interp">Highest AADT in the dataset (271,000 veh/day) alone places it #2. Two different pathways — storm exposure and traffic volume — both produce HIGH-priority outcomes.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tier Assignment -->
+      <div style="margin-bottom:8px;font-size:13px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:0.5px">Priority Tier Assignment</div>
+      <div style="font-size:12px;color:var(--gray-500);margin-bottom:14px">Thresholds are percentile-based, computed from all 1,572 priority scores. Each tier contains exactly 25% of signals (or as close as possible given tied scores).</div>
+      <div class="threshold-row" style="margin-bottom:28px">
+        <div class="threshold-card high">
+          <div class="threshold-label">HIGH</div>
+          <div class="threshold-desc">Top 25% · at or above 75th percentile · 393 signals<br/>First priority for backup power assessment and pre-storm inspection</div>
+        </div>
+        <div class="threshold-card moderate">
+          <div class="threshold-label">MODERATE</div>
+          <div class="threshold-desc">25th–75th percentile · 787 signals<br/>Secondary priority; include in backup power planning after HIGH is addressed</div>
+        </div>
+        <div class="threshold-card low">
+          <div class="threshold-label">LOW</div>
+          <div class="threshold-desc">Bottom 25% · at or below 25th percentile · 392 signals<br/>Lowest urgency — restore after HIGH and MODERATE are cleared</div>
         </div>
       </div>
 
@@ -1105,6 +1255,13 @@
           <div class="chart-sub">Closest HURDAT2 storm track center (1851–2023)</div>
           <canvas id="hurricaneChart" height="220"></canvas>
         </div>
+      </div>
+
+      <!-- Score Component Chart -->
+      <div class="chart-card" style="margin-top:24px;margin-bottom:24px">
+        <h3>Score Component Contribution by Tier</h3>
+        <div class="chart-sub">Average AADT score vs. average hurricane proximity score within each priority tier — shows which factor drives each tier</div>
+        <canvas id="componentChart" height="160"></canvas>
       </div>
 
       <!-- Top 15 Signals Table -->
@@ -1133,13 +1290,11 @@
       </div>
 
     </div>
-    <!-- Footer inside tab -->
     <div class="page-footer">
       <strong>All data is publicly available. No synthetic data. No machine learning.</strong>
-      Sources: FDOT ArcGIS REST API (Signal Inventory, AADT 2025) · NOAA HURDAT2 Atlantic Hurricane Database (1851–2023) · NOAA Storm Events Database (Miami-Dade, 2014–2022) · FEMA OpenFEMA Disaster Declarations API (2016–2022) · EIA Form 861 (2022, FPL excluded — no SAIDI/SAIFI reported)
+      Sources: FDOT ArcGIS REST API (Signal Inventory &amp; AADT 2025) · NOAA HURDAT2 Atlantic Hurricane Database (1851–2023) · NOAA Storm Events Database (Miami-Dade, 2014–2022) · FEMA OpenFEMA Disaster Declarations API (2016–2022)
     </div>
   </div>
-
   <!-- ─── MAP TAB ─── -->
   <div id="tab-map" class="tab-content">
     <div id="map-container">
@@ -1229,13 +1384,7 @@
                 <td>FEMA OpenFEMA</td>
                 <td><span class="access-tag api">Public API</span><br/><small style="color:#6b7280">FEMA OpenFEMA API</small></td>
               </tr>
-              <tr>
-                <td><strong>EIA Form 861 Reliability</strong></td>
-                <td>34 FL utilities</td>
-                <td>2022</td>
-                <td>EIA.gov</td>
-                <td><span class="access-tag excluded">EXCLUDED</span><br/><small style="color:#b91c1c">FPL has no SAIDI/SAIFI</small></td>
-              </tr>
+
             </tbody>
           </table>
         </div>
@@ -1292,291 +1441,11 @@
     </div>
     <div class="page-footer">
       <strong>All data is publicly available. No synthetic data. No machine learning.</strong>
-      Sources: FDOT ArcGIS REST API (Signal Inventory, AADT 2025) · NOAA HURDAT2 Atlantic Hurricane Database (1851–2023) · NOAA Storm Events Database (Miami-Dade, 2014–2022) · FEMA OpenFEMA Disaster Declarations API (2016–2022) · EIA Form 861 (2022, FPL excluded — no SAIDI/SAIFI reported)
+      Sources: FDOT ArcGIS REST API (Signal Inventory, AADT 2025) · NOAA HURDAT2 Atlantic Hurricane Database (1851–2023) · NOAA Storm Events Database (Miami-Dade, 2014–2022) · FEMA OpenFEMA Disaster Declarations API (2016–2022)
     </div>
   </div>
 
-  <!-- ─── METHODOLOGY TAB ─── -->
-  <div id="tab-methodology" class="tab-content">
-    <div class="tab-inner">
-      <div class="section-header">
-        <h2>Methodology</h2>
-        <p>Fully transparent, formula-based prioritization. No machine learning. No synthetic data. Every number traced back to its public source.</p>
-      </div>
 
-      <!-- What this is / isn't -->
-      <div class="method-grid" style="margin-bottom:28px">
-        <div class="method-card">
-          <h3><div class="method-icon green">✓</div>What This Is</h3>
-          <ul>
-            <li>A data-driven prioritization framework ranking Miami-Dade traffic signals by estimated disruption impact</li>
-            <li>Signals scored by how much traffic disruption they would cause if they went dark during a storm</li>
-            <li>Two real, public data components: traffic volume (AADT 2025) and historical hurricane proximity (HURDAT2 1851–2023)</li>
-            <li>Percentile-based tier assignment (HIGH / MODERATE / LOW) computed from the priority scores</li>
-            <li>All 1,572 signals are real FDOT inventory locations, queried April 2026</li>
-          </ul>
-        </div>
-        <div class="method-card">
-          <h3><div class="method-icon red">✗</div>What This Is NOT</h3>
-          <ul>
-            <li>Not a prediction of which signals will lose power — no public outage records exist</li>
-            <li>Not a machine learning model — no training data, no learned weights, no AUC metric</li>
-            <li>Not synthetic data — every number is from a verified public dataset</li>
-            <li>Not a claim that higher-ranked signals will fail — this is a preparedness planning tool</li>
-            <li>Not using utility outage data — FPL does not report SAIDI/SAIFI in EIA Form 861 (2022)</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Pipeline flow -->
-      <div style="margin-bottom:10px;font-size:13px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:0.5px">Analysis Pipeline</div>
-      <div class="pipeline-flow">
-        <div class="pipeline-step">
-          <div class="pipeline-num">1</div>
-          <div class="pipeline-label">FDOT Signals<br/><span>1,572 locations</span></div>
-        </div>
-        <div class="pipeline-arrow">→</div>
-        <div class="pipeline-step">
-          <div class="pipeline-num">2</div>
-          <div class="pipeline-label">AADT Join<br/><span>100% match rate</span></div>
-        </div>
-        <div class="pipeline-arrow">→</div>
-        <div class="pipeline-step">
-          <div class="pipeline-num">3</div>
-          <div class="pipeline-label">HURDAT2 Distance<br/><span>54,749 track points</span></div>
-        </div>
-        <div class="pipeline-arrow">→</div>
-        <div class="pipeline-step">
-          <div class="pipeline-num">4</div>
-          <div class="pipeline-label">Normalize &amp; Score<br/><span>Priority Score [0, 1]</span></div>
-        </div>
-        <div class="pipeline-arrow">→</div>
-        <div class="pipeline-step active">
-          <div class="pipeline-num">5</div>
-          <div class="pipeline-label">Tier Assignment<br/><span>HIGH / MOD / LOW</span></div>
-        </div>
-      </div>
-
-      <!-- STEP 1 -->
-      <div class="calc-section">
-        <div class="calc-header">
-          <div class="calc-step-num">Step 1</div>
-          <div>
-            <div class="calc-title">AADT Score — Traffic Volume Normalization</div>
-            <div class="calc-subtitle">Source: FDOT ArcGIS REST API · Annual Average Daily Traffic 2025 · 1,848 road segments joined to 1,572 signals</div>
-          </div>
-        </div>
-        <div class="calc-formula-box">
-          <div class="cfb-label">Formula</div>
-          <div class="cfb-formula">AADT_score = (signal_AADT − min_AADT) / (max_AADT − min_AADT)</div>
-          <div class="cfb-note">Dataset range: min_AADT = 1,500 veh/day · max_AADT = 271,000 veh/day · denominator = 271,000 − 1,500 = 269,500</div>
-        </div>
-        <div class="cfb-why">
-          <strong>Why min-max normalization?</strong> AADT values span 1,500 to 271,000 vehicles/day — a 180× range. Min-max scaling maps every signal to [0, 1] so AADT and hurricane scores contribute equally to the final weighted sum. A signal at the dataset maximum gets AADT_score = 1.000; a signal at the minimum gets 0.000. The formula is applied independently to each of the 1,572 signals.
-        </div>
-        <div class="example-grid">
-          <div class="example-card example-a">
-            <div class="ex-header"><div class="ex-badge">Example A</div><div class="ex-title">Signal #3833 — Coastal / Hurricane-Close</div></div>
-            <div class="ex-given">Given: AADT = 39,500 veh/day</div>
-            <div class="math-block">
-              <div class="math-line">AADT_score = (39,500 − 1,500) / (271,000 − 1,500)</div>
-              <div class="math-line">AADT_score = 38,000 / 269,500</div>
-              <div class="math-result">AADT_score = <strong>0.141</strong></div>
-            </div>
-            <div class="ex-interp">Signal #3833 handles moderate traffic — 39,500 veh/day. A score of 0.141 means it sits in the lower 14% of the dataset by traffic volume alone. Its high overall priority will come from hurricane proximity (Step 2).</div>
-          </div>
-          <div class="example-card example-b">
-            <div class="ex-header"><div class="ex-badge">Example B</div><div class="ex-title">Signal #4110 — High-Volume Arterial</div></div>
-            <div class="ex-given">Given: AADT = 271,000 veh/day</div>
-            <div class="math-block">
-              <div class="math-line">AADT_score = (271,000 − 1,500) / (271,000 − 1,500)</div>
-              <div class="math-line">AADT_score = 269,500 / 269,500</div>
-              <div class="math-result">AADT_score = <strong>1.000</strong></div>
-            </div>
-            <div class="ex-interp">Signal #4110 sits on Miami-Dade's highest-volume road segment — 271,000 veh/day. It gets the maximum AADT score of 1.000. Losing this signal during a storm would disrupt more drivers than any other signal in the dataset.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- STEP 2 -->
-      <div class="calc-section">
-        <div class="calc-header">
-          <div class="calc-step-num">Step 2</div>
-          <div>
-            <div class="calc-title">Hurricane Proximity Score — Storm Exposure Normalization</div>
-            <div class="calc-subtitle">Source: NOAA HURDAT2 Atlantic Hurricane Database 1851–2023 · 54,749 track points from 1,973 named storms · Haversine distance computed for all signal–track combinations</div>
-          </div>
-        </div>
-        <div class="calc-formula-box">
-          <div class="cfb-label">Formula (two sub-steps)</div>
-          <div class="cfb-formula">raw_exposure = 1 / closest_storm_km &nbsp;&nbsp;&nbsp;<span class="cfb-comment">← invert: closer storm = higher exposure value</span></div>
-          <div class="cfb-formula">hurr_score = (raw_exposure − min_exposure) / (max_exposure − min_exposure)</div>
-          <div class="cfb-note">Dataset range: closest_storm_km spans 0.15 km (most exposed) → 12.24 km (least exposed) across all 1,572 signals<br/>
-          → max_exposure = 1/0.15 = 6.667 &nbsp;·&nbsp; min_exposure = 1/12.24 = 0.0817 &nbsp;·&nbsp; denominator = 6.667 − 0.0817 = 6.585</div>
-        </div>
-        <div class="cfb-why">
-          <strong>Why invert the distance?</strong> Storm proximity is naturally a distance — smaller = more exposed. By computing 1/distance, we convert it to an exposure measure where larger = more exposed. This is then min-max normalized to [0, 1].
-          <br/><br/>
-          <strong>Why closest track distance, not storm count?</strong> Within Miami-Dade's 5,000 km² area, every signal has 198–211 storms within 250 km — an extremely narrow range with no spatial variation. Storm count would rank all signals nearly identically. Closest track distance gives real differentiation: coastal signals had a storm center pass within 0.15 km; inland signals show 12+ km minimum over 172 years of records.
-        </div>
-        <div class="example-grid">
-          <div class="example-card example-a">
-            <div class="ex-header"><div class="ex-badge">Example A</div><div class="ex-title">Signal #3833 — Coastal (25.899°N, 80.300°W)</div></div>
-            <div class="ex-given">Given: closest_storm_km = 0.15 km</div>
-            <div class="math-block">
-              <div class="math-line">raw_exposure = 1 / 0.15 = 6.667</div>
-              <div class="math-line">hurr_score = (6.667 − 0.0817) / (6.667 − 0.0817)</div>
-              <div class="math-line">hurr_score = 6.585 / 6.585</div>
-              <div class="math-result">hurr_score = <strong>1.000</strong></div>
-            </div>
-            <div class="ex-interp">In 172 years of HURDAT2 records, a hurricane center passed within 150 meters of Signal #3833. It holds the maximum hurricane score in the entire dataset. This is a coastal southern Miami-Dade location directly in the historical storm corridor.</div>
-          </div>
-          <div class="example-card example-b">
-            <div class="ex-header"><div class="ex-badge">Example B</div><div class="ex-title">Signal #4110 — Inland (25.931°N, 80.209°W)</div></div>
-            <div class="ex-given">Given: closest_storm_km = 9.73 km</div>
-            <div class="math-block">
-              <div class="math-line">raw_exposure = 1 / 9.73 = 0.1028</div>
-              <div class="math-line">hurr_score = (0.1028 − 0.0817) / (6.667 − 0.0817)</div>
-              <div class="math-line">hurr_score = 0.0211 / 6.585</div>
-              <div class="math-result">hurr_score = <strong>0.003</strong></div>
-            </div>
-            <div class="ex-interp">Signal #4110 is inland Miami-Dade. The closest storm center in all 1,973 HURDAT2 storms was still 9.73 km away. It gets a near-zero hurricane score. Its final priority rank will come entirely from its maximum AADT.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- STEP 3 -->
-      <div class="calc-section">
-        <div class="calc-header">
-          <div class="calc-step-num">Step 3</div>
-          <div>
-            <div class="calc-title">Final Priority Score — Equal-Weighted Combination</div>
-            <div class="calc-subtitle">Combines both normalized components with equal 50/50 weight · Output range: [0, 1]</div>
-          </div>
-        </div>
-        <div class="calc-formula-box">
-          <div class="cfb-label">Final Formula</div>
-          <div class="cfb-formula">Priority_Score = 0.5 × AADT_score + 0.5 × hurr_score</div>
-          <div class="cfb-note">Equal weighting applied because no historical power outage records exist to empirically calibrate the weights. 50/50 is the most defensible, transparent choice under data constraints.</div>
-        </div>
-        <div class="cfb-why">
-          <strong>Why equal weighting?</strong> A higher weight on AADT would rank signals purely by traffic volume, ignoring storm geography. A higher weight on hurricane exposure would favor coastal signals even with negligible traffic. Without ground-truth outage data to fit the weights empirically, 0.5/0.5 avoids making an unverifiable assumption about which factor matters more.
-        </div>
-        <div class="example-grid">
-          <div class="example-card example-a">
-            <div class="ex-header"><div class="ex-badge">Example A</div><div class="ex-title">Signal #3833 — Final Score</div></div>
-            <div class="ex-given">AADT_score = 0.141 &nbsp;·&nbsp; hurr_score = 1.000</div>
-            <div class="math-block">
-              <div class="math-line">Priority = 0.5 × 0.141 + 0.5 × 1.000</div>
-              <div class="math-line">Priority = 0.0705 + 0.5000</div>
-              <div class="math-result">Priority Score = <strong>0.5705</strong> &nbsp;→&nbsp; <span style="color:#ef4444;font-weight:700">HIGH</span> (Rank #1 of 1,572)</div>
-            </div>
-            <div class="ex-interp">Despite modest traffic (only 14% of the AADT range), Signal #3833 ranks first across all 1,572 signals because a hurricane center has passed within 150 m of it. Storm exposure completely dominates the score. This is the correct outcome — this location has the highest historical hurricane exposure in the county.</div>
-          </div>
-          <div class="example-card example-b">
-            <div class="ex-header"><div class="ex-badge">Example B</div><div class="ex-title">Signal #4110 — Final Score</div></div>
-            <div class="ex-given">AADT_score = 1.000 &nbsp;·&nbsp; hurr_score = 0.003</div>
-            <div class="math-block">
-              <div class="math-line">Priority = 0.5 × 1.000 + 0.5 × 0.003</div>
-              <div class="math-line">Priority = 0.5000 + 0.0015</div>
-              <div class="math-result">Priority Score = <strong>0.5016</strong> &nbsp;→&nbsp; <span style="color:#ef4444;font-weight:700">HIGH</span> (Rank #2 of 1,572)</div>
-            </div>
-            <div class="ex-interp">Signal #4110 has the highest AADT in the entire dataset — 271,000 veh/day — and that traffic volume alone is enough to place it second. This shows how two completely different pathways (storm exposure vs. traffic volume) can both produce HIGH-priority results through different mechanisms.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tier Thresholds -->
-      <div style="margin-bottom:8px;font-size:13px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:0.5px">Priority Tier Assignment</div>
-      <div style="font-size:12px;color:var(--gray-500);margin-bottom:14px">Thresholds are percentile-based, computed from all 1,572 priority scores. Each tier contains exactly 25% of signals (or as close as possible given tied scores).</div>
-      <div class="threshold-row" style="margin-bottom:28px">
-        <div class="threshold-card high">
-          <div class="threshold-label">HIGH</div>
-          <div class="threshold-desc">Top 25% of scores — at or above the 75th percentile<br/>393 signals</div>
-        </div>
-        <div class="threshold-card moderate">
-          <div class="threshold-label">MODERATE</div>
-          <div class="threshold-desc">25th to 75th percentile range<br/>787 signals</div>
-        </div>
-        <div class="threshold-card low">
-          <div class="threshold-label">LOW</div>
-          <div class="threshold-desc">Bottom 25% — at or below the 25th percentile<br/>392 signals</div>
-        </div>
-      </div>
-
-      <!-- What each tier MEANS -->
-      <div style="margin-bottom:10px;font-size:13px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:0.5px">What Each Tier Means in Practice</div>
-      <div class="tier-meaning-row">
-        <div class="tier-meaning-card tm-high">
-          <div class="tm-badge tm-badge-high">HIGH Priority</div>
-          <div class="tm-title">Top 25% — 393 Signals</div>
-          <div class="tm-body">
-            <p>These signals are on the highest-volume roads, the most storm-exposed corridors, or both at significant levels. If they go dark during a storm:</p>
-            <ul>
-              <li>Maximum vehicle throughput disrupted — gridlock on major arterials and evacuation routes</li>
-              <li>Emergency response times increase — officers dispatched to manually direct traffic at dark intersections</li>
-              <li>Cascading queue spillback onto adjacent signals as vehicles back up</li>
-              <li>Coastal HIGH signals face direct hurricane wind, surge, and immediate post-landfall outage risk</li>
-            </ul>
-            <div class="tm-action">→ First priority for backup power assessment, pre-storm inspection, and fastest restoration timeline</div>
-          </div>
-        </div>
-        <div class="tier-meaning-card tm-mod">
-          <div class="tm-badge tm-badge-mod">MODERATE Priority</div>
-          <div class="tm-title">25th–75th Percentile — 787 Signals</div>
-          <div class="tm-body">
-            <p>These signals carry meaningful traffic or sit in a moderately storm-exposed area — but not both at the maximum level:</p>
-            <ul>
-              <li>Medium-volume roads: outage causes delays but not complete gridlock on major corridors</li>
-              <li>Storm exposure is real but the closest historical storm center was 2–8 km away</li>
-              <li>Disruption is significant at neighborhood or secondary corridor level</li>
-              <li>After HIGH signals are addressed, these are the next concern</li>
-            </ul>
-            <div class="tm-action">→ Second-wave inspection priority; include in backup power planning if resources allow</div>
-          </div>
-        </div>
-        <div class="tier-meaning-card tm-low">
-          <div class="tm-badge tm-badge-low">LOW Priority</div>
-          <div class="tm-title">Bottom 25% — 392 Signals</div>
-          <div class="tm-body">
-            <p>These signals have low traffic volume AND are historically far from storm centers — both conditions together:</p>
-            <ul>
-              <li>Low-volume local roads: outage causes minor delays, easier for drivers to navigate unsignalized</li>
-              <li>Closest historical storm center was 8–12+ km away across all 1,973 HURDAT2 storms</li>
-              <li>Lower consequential impact means allocating resources here last is defensible</li>
-              <li>Still real signals that will need restoration — but not first</li>
-            </ul>
-            <div class="tm-action">→ Lowest urgency for storm prep — restore after HIGH and MODERATE are cleared</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Design Decisions -->
-      <div style="margin-bottom:10px;font-size:13px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:0.5px">Key Design Decisions</div>
-      <div class="rationale-grid">
-        <div class="rationale-card">
-          <h4>Why HURDAT2 Closest Track Distance (Not Storm Count)</h4>
-          <p>Within Miami-Dade's 5,000 km² area, every signal has 198–211 storms within 250 km — an extremely narrow range that provides no meaningful spatial variation. Using storm count would rank all signals nearly identically. Instead, closest storm track distance gives real spatial differentiation: coastal signals have had storm centers pass within 0.15 km, while inland signals show 12+ km minimum distances over 172 years of records.</p>
-        </div>
-        <div class="rationale-card">
-          <h4>Why EIA Utility Reliability Data Was Excluded</h4>
-          <p>Florida Power &amp; Light (FPL), which serves Miami-Dade, does not report SAIDI or SAIFI in EIA Form 861 (2022). EIA Form 861 was reviewed — 34 Florida utilities are present, but FPL's reliability columns are entirely blank. Including an empty field as a scoring input would be misleading and non-transparent. This is documented in the Data Sources tab and the output CSV.</p>
-        </div>
-      </div>
-
-      <!-- Score Component Chart -->
-      <div class="chart-card" style="margin-top:24px;margin-bottom:24px">
-        <h3>Score Component Contribution by Tier</h3>
-        <div class="chart-sub">Average AADT score vs. average hurricane proximity score within each priority tier — shows which factor drives each tier</div>
-        <canvas id="componentChart" height="160"></canvas>
-      </div>
-
-    </div>
-    <div class="page-footer">
-      <strong>All data is publicly available. No synthetic data. No machine learning.</strong>
-      Sources: FDOT ArcGIS REST API (Signal Inventory &amp; AADT 2025) · NOAA HURDAT2 Atlantic Hurricane Database (1851–2023) · NOAA Storm Events Database (Miami-Dade, 2014–2022) · FEMA OpenFEMA Disaster Declarations API (2016–2022) · EIA Form 861 (2022, FPL excluded — no SAIDI/SAIFI reported)
-    </div>
-  </div>
 
 </main>
 
@@ -1632,10 +1501,9 @@ const COMPONENT_DATA = {
 let mapInitialized = false;
 
 const TAB_TITLES = {
-  overview: 'Overview — Signal Disruption Priority',
+  overview: 'Overview & Methodology — Signal Disruption Priority',
   map: 'Priority Map — 1,572 Signals',
   sources: 'Data Sources',
-  methodology: 'Methodology & Formula'
 };
 
 function showTab(name) {
